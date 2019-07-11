@@ -16,14 +16,19 @@ use font::Font;
 mod board;
 use board::Board;
 
+mod yvr;
+use yvr::Flight;
+
 static LIGHT: &[u8] = include_bytes!("../res/light.bmp");
 
 fn main() -> Result<()> {
+    let flights = yvr::get_flights()?;
+
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
     let pitch  = 16i32;
-    let width  = 128i32;
+    let width  = 192i32;
     let height = 32i32;
  
     let window = video_subsystem.window("dboard simulator",
@@ -52,18 +57,49 @@ fn main() -> Result<()> {
 
     let font = Font::new();
 
-    font.render_str(&mut board, 0, 0, (255, 255, 255), "NH115");
-    font.render_str(&mut board, 8*6, 0, (255, 0, 255), "Shunki =");
+    for (index, flight) in flights.iter().take(3).enumerate() {
+        font.render_str(&mut board,
+                        0, (index * 10) as i32,
+                        (255, 255, 255),
+                        &flight.flight_number);
 
-    font.render_str(&mut board, 0, 10, (255, 255, 255), "NH116");
-    font.render_str(&mut board, 8*6, 10, (255, 160, 0), "Delayed @");
+        font.render_str(&mut board,
+                        48, (index * 10) as i32,
+                        (255, 255, 255),
+                        &flight.flight_city);
 
-    font.render_str(&mut board, 0, 20, (255, 255, 255), "NH117");
-    font.render_str(&mut board, 8*6, 20, (255, 0, 0), "On time 11:40");
+        font.render_str(&mut board,
+                        128, (index * 10) as i32,
+                        (0, 255, 0),
+                        &flight.flight_status);
+    }
 
-    let mut i = 0u64;
+    let mut counter = 0u64;
+    let mut yoff = 0i32;
 
     'running: loop {
+        if counter % 5 == 0 {
+            board.clear_all();
+
+            for (index, flight) in flights.iter().enumerate() {
+                render_flight(&font, &mut board, yoff, index, flight);
+            }
+
+            yoff -= 1;
+        }
+
+        counter += 1;
+
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} |
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running
+                },
+                _ => {}
+            }
+        }
+
         canvas.clear();
 
         for y in 0..height {
@@ -79,23 +115,37 @@ fn main() -> Result<()> {
         }
 
         canvas.present();
-
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running
-                },
-                _ => {}
-            }
-        }
-
-        i += 1;
-
-        if i % 5 == 0 {
-            board.scroll_down(1);
-        }
     }
 
     Ok(())
+}
+
+fn render_flight(font: &Font, board: &mut Board, yoff: i32, index: usize, flight: &Flight) {
+    let y = (index * 10) as i32 + yoff;
+
+    if y < -10 || y >= 60 {
+        return;
+    }
+
+    font.render_str(board,
+                    0, (index * 10) as i32 + yoff,
+                    (255, 255, 255),
+                    &flight.flight_number);
+
+    font.render_str(board,
+                    48, (index * 10) as i32 + yoff,
+                    (255, 255, 160),
+                    &flight.flight_city);
+
+    let status_color =
+        match &flight.flight_status[..] {
+            "Delayed" => (255, 160, 0),
+            "Cancelled" => (255, 0, 0),
+            _ => (0, 255, 0),
+        };
+
+    font.render_str(board,
+                    128, (index * 10) as i32 + yoff,
+                    status_color,
+                    &flight.flight_status);
 }

@@ -67,6 +67,12 @@ impl Board {
         }
     }
 
+    pub fn clear_all(&mut self) {
+        for p in self.board.iter_mut() {
+            *p = 0;
+        }
+    }
+
     pub fn scroll_down(&mut self, lines: i32) {
         assert!(lines > 0);
 

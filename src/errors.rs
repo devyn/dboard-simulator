@@ -5,5 +5,6 @@ error_chain! {
         WindowBuildError(sdl2::video::WindowBuildError);
         IntegerOrSdlError(sdl2::IntegerOrSdlError);
         TextureValueError(sdl2::render::TextureValueError);
+        Reqwest(reqwest::Error);
     }
 }
