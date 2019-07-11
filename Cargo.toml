@@ -1,5 +1,5 @@
 [package]
-name = "dboard-simluator"
+name = "dboard-simulator"
 version = "0.1.0"
 authors = ["Devyn Cairns <devyn.cairns@gmail.com>"]
 edition = "2018"
@@ -7,3 +7,8 @@ edition = "2018"
 [dependencies]
 sdl2 = "0.32"
 error-chain = "0.12"
+
+[dependencies.image]
+version = "0.21"
+default-features = false
+features = ["bmp"]

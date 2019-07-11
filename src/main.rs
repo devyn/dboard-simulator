@@ -10,6 +10,12 @@ use std::cmp::max;
 mod errors;
 use errors::*;
 
+mod font;
+use font::Font;
+
+mod board;
+use board::Board;
+
 static LIGHT: &[u8] = include_bytes!("../res/light.bmp");
 
 fn main() -> Result<()> {
@@ -42,19 +48,31 @@ fn main() -> Result<()> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    let mut data = vec![0; 128*32*3];
+    let mut board = Board::new(width, height);
 
-    data[0] = 255;
+    let font = Font::new();
+
+    font.render_str(&mut board, 0, 0, (255, 255, 255), "NH115");
+    font.render_str(&mut board, 8*6, 0, (255, 0, 255), "Shunki =");
+
+    font.render_str(&mut board, 0, 10, (255, 255, 255), "NH116");
+    font.render_str(&mut board, 8*6, 10, (255, 160, 0), "Delayed @");
+
+    font.render_str(&mut board, 0, 20, (255, 255, 255), "NH117");
+    font.render_str(&mut board, 8*6, 20, (255, 0, 0), "On time 11:40");
+
+    let mut i = 0u64;
 
     'running: loop {
         canvas.clear();
 
         for y in 0..height {
             for x in 0..width {
-                let offset = ((y*height + x) * 3) as usize;
-                let red   = max(32, data[offset + 0]);
-                let green = max(32, data[offset + 1]);
-                let blue  = max(32, data[offset + 2]);
+                let (r, g, b) = board.get(x, y).unwrap();
+                //println!("{}, {} -> {}, {}, {}", x, y, r, g, b);
+                let red   = max(32, r);
+                let green = max(32, g);
+                let blue  = max(32, b);
                 texture.set_color_mod(red, green, blue);
                 canvas.copy(&texture, None, Rect::new(pitch*x, pitch*y, pitch as u32, pitch as u32))?;
             }
@@ -70,6 +88,12 @@ fn main() -> Result<()> {
                 },
                 _ => {}
             }
+        }
+
+        i += 1;
+
+        if i % 5 == 0 {
+            board.scroll_down(1);
         }
     }
 
