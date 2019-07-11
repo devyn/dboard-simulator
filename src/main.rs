@@ -22,7 +22,21 @@ use yvr::Flight;
 static LIGHT: &[u8] = include_bytes!("../res/light.bmp");
 
 fn main() -> Result<()> {
-    let flights = yvr::get_flights()?;
+    //let flights = yvr::get_flights()?;
+    let flights = vec![
+        Flight {
+            flight_number: "AC2012".into(),
+            flight_city: "Torino".into(),
+            flight_status: "Cancelled".into(),
+            ..Flight::default()
+        },
+        Flight {
+            flight_number: "KL442".into(),
+            flight_city: "Malta".into(),
+            flight_status: "On Time".into(),
+            ..Flight::default()
+        },
+    ];
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -85,7 +99,7 @@ fn main() -> Result<()> {
                 render_flight(&font, &mut board, yoff, index, flight);
             }
 
-            yoff -= 1;
+            //yoff -= 1;
         }
 
         counter += 1;

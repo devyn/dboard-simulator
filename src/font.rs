@@ -34,6 +34,16 @@ impl Font {
         Font { font_buf }
     }
 
+    pub fn glyph_width(&self, glyph: char) -> i32 {
+        match glyph {
+            'i' => 1,
+            't' => 3,
+            'j' => 3,
+            'l' => 2,
+            _ => GLYPH_W
+        }
+    }
+
     pub fn render(&self,
                   target: &mut Board,
                   x: i32,
@@ -69,8 +79,10 @@ impl Font {
         let oy = sely * GLYPH_H;
         let ow = FONT_W * GLYPH_W;
 
+        let max_w = self.glyph_width(glyph);
+
         for cy in 0..GLYPH_H {
-            for cx in 0..GLYPH_W {
+            for cx in 0..max_w {
                 let byte = self.font_buf[(((oy+cy)*ow + (ox+cx))*3) as usize];
 
                 if byte > 0 {
@@ -91,7 +103,7 @@ impl Font {
         for glyph in string.chars() {
             self.render(target, x, y, color, glyph);
 
-            x += GLYPH_W + 1;
+            x += self.glyph_width(glyph) + 1;
 
             if x > target.width() {
                 return;
